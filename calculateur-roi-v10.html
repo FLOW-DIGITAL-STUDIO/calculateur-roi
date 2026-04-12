@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur ROI — Flow Digital Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f7f8fa;--white:#fff;--border:#e4e7ed;
+    --text:#1a1a2e;--muted:#8892a4;--muted2:#c4cad6;
+    --yellow:#FFBF23;--yellow-dark:#d49d00;--yellow-light:#fff9e6;--yellow-border:#ffe08a;
+    --red:#f43f5e;--red-light:#fff1f3;
+    --blue-light:#eff6ff;--blue-border:#bfdbfe;--blue:#3b82f6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;min-height:100vh;padding:48px 20px 80px;font-size:15px;}
+  .container{max-width:700px;margin:0 auto;}
+
+  .header{text-align:center;margin-bottom:32px;animation:fadeUp 0.5s ease both;}
+  .logo-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:18px;}
+  .logo-dot{width:9px;height:9px;border-radius:50%;background:var(--yellow);}
+  .logo-name{font-size:12px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+  .header-badge{display:inline-block;background:var(--yellow-light);color:var(--yellow-dark);font-size:12px;font-weight:700;padding:5px 16px;border-radius:100px;margin-bottom:14px;border:1px solid var(--yellow-border);}
+  h1{font-size:clamp(26px,4vw,42px);font-weight:800;line-height:1.15;letter-spacing:-0.025em;margin-bottom:12px;}
+  h1 em{font-style:normal;color:var(--yellow-dark);}
+  .header-sub{font-size:clamp(14px,2vw,16px);color:var(--muted);line-height:1.6;}
+
+  .progress-row{display:flex;align-items:center;margin-bottom:24px;animation:fadeUp 0.5s ease 0.05s both;}
+  .step-pill{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;}
+  .step-pill:not(:last-child)::after{content:'';position:absolute;top:13px;left:calc(50% + 16px);right:calc(-50% + 16px);height:2px;background:var(--border);transition:background 0.3s;z-index:0;}
+  .step-pill.done:not(:last-child)::after{background:var(--yellow);}
+  .step-circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--muted2);transition:all 0.3s;z-index:1;}
+  .step-pill.active .step-circle{border-color:var(--yellow);background:var(--yellow);color:var(--text);}
+  .step-pill.done .step-circle{border-color:var(--yellow);background:var(--yellow-light);color:var(--yellow-dark);}
+  .step-label{font-size:9px;font-weight:700;color:var(--muted2);text-align:center;letter-spacing:0.04em;text-transform:uppercase;}
+  .step-pill.active .step-label,.step-pill.done .step-label{color:var(--yellow-dark);}
+  .step-pill.done{cursor:pointer;}
+  .step-pill.done:hover .step-circle{background:var(--yellow);color:var(--text);border-color:var(--yellow);transform:scale(1.1);}
+  .step-pill.done:hover .step-label{text-decoration:underline;}
+
+  .card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:28px;box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.03);animation:fadeUp 0.4s ease both;margin-bottom:14px;}
+  .card-title{font-size:clamp(16px,2.5vw,20px);font-weight:800;letter-spacing:-0.02em;margin-bottom:6px;}
+  .card-sub{font-size:clamp(12px,1.8vw,14px);color:var(--muted);margin-bottom:22px;line-height:1.6;}
+
+  /* BU GRID */
+  .bu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:500px){.bu-grid{grid-template-columns:1fr;}}
+  .bu-card{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg);transition:border-color 0.2s,background 0.2s;}
+  .bu-card:not(.selected):hover{border-color:var(--yellow);background:var(--yellow-light);}
+  .bu-card.selected{border-color:var(--yellow);background:var(--yellow-light);box-shadow:0 0 0 3px rgba(255,191,35,0.2);}
+  .bu-top{padding:14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+  .bu-emoji{font-size:20px;flex-shrink:0;margin-top:1px;}
+  .bu-title-block{flex:1;}
+  .bu-name{font-size:clamp(13px,2vw,15px);font-weight:800;color:var(--text);margin-bottom:2px;}
+  .bu-metiers{font-size:clamp(9px,1.4vw,11px);color:var(--muted);font-weight:600;line-height:1.4;}
+  .bu-card.selected .bu-metiers{color:var(--yellow-dark);}
+  .bu-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);transition:all 0.2s;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;}
+  .bu-card.selected .bu-check{background:var(--yellow);border-color:var(--yellow);}
+  .bu-check-inner{font-size:9px;color:var(--text);display:none;font-weight:800;}
+  .bu-card.selected .bu-check-inner{display:block;}
+  .bu-tags-row{padding:0 14px 10px;display:flex;flex-wrap:wrap;gap:4px;}
+  .bu-tag{font-size:9px;font-weight:600;padding:2px 7px;border-radius:100px;background:white;border:1px solid var(--border);color:var(--muted);white-space:nowrap;}
+  .bu-card.selected .bu-tag{border-color:var(--yellow-border);color:var(--yellow-dark);}
+
+  .bu-config{display:none;border-top:1px solid var(--yellow-border);background:white;padding:14px;animation:fadeUp 0.25s ease both;}
+  .bu-card.selected .bu-config{display:block;}
+  .bu-config-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:8px;}
+  .bu-senio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px;}
+  @media(max-width:400px){.bu-senio-grid{grid-template-columns:repeat(2,1fr);}}
+  .bu-senio-btn{padding:7px 4px;border:1.5px solid var(--border);border-radius:7px;background:var(--bg);cursor:pointer;text-align:center;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:var(--muted);transition:all 0.15s;line-height:1.3;}
+  .bu-senio-btn:hover{border-color:var(--yellow);color:var(--text);}
+  .bu-senio-btn.selected{border-color:var(--yellow);background:var(--yellow-light);color:var(--yellow-dark);box-shadow:0 0 0 2px rgba(255,191,35,0.2);}
+  .bu-senio-sub{font-size:8px;color:var(--muted2);display:block;margin-top:1px;}
+  .bu-senio-btn.selected .bu-senio-sub{color:var(--yellow-dark);}
+  .bu-senio-price{font-size:9px;font-weight:800;display:block;margin-top:2px;font-family:'DM Mono',monospace;}
+  .bu-senio-btn.selected .bu-senio-price{color:var(--yellow-dark);}
+  .bu-senio-btn:not(.selected) .bu-senio-price{color:var(--muted2);}
+  .bu-qty-row{display:flex;align-items:center;gap:10px;}
+  .bu-qty-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);white-space:nowrap;}
+  .bu-qty-controls{display:flex;align-items:center;gap:8px;margin-left:auto;}
+  .qty-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:center;transition:all 0.15s;line-height:1;}
+  .qty-btn:hover{border-color:var(--yellow);background:var(--yellow-light);}
+  .qty-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--text);min-width:24px;text-align:center;}
+  .bu-config-summary{margin-top:10px;font-size:10px;font-weight:700;color:var(--yellow-dark);background:var(--yellow-light);border:1px solid var(--yellow-border);border-radius:6px;padding:5px 10px;display:none;}
+  .bu-config-summary.visible{display:block;}
+
+  .selected-summary{font-size:11px;color:var(--yellow-dark);font-weight:600;margin-top:10px;min-height:16px;}
+
+  /* OBJ */
+  .obj-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:480px){.obj-grid{grid-template-columns:1fr;}}
+  .obj-btn{padding:18px;border:1.5px solid var(--border);border-radius:10px;background:var(--white);cursor:pointer;text-align:left;transition:all 0.2s;}
+  .obj-btn:hover{border-color:var(--yellow);background:var(--yellow-light);}
+  .obj-btn.selected{border-color:var(--yellow);background:var(--yellow-light);box-shadow:0 0 0 3px rgba(255,191,35,0.2);}
+  .obj-icon{font-size:22px;margin-bottom:8px;}
+  .obj-label{font-size:clamp(13px,2vw,15px);font-weight:800;margin-bottom:4px;}
+  .obj-desc{font-size:clamp(11px,1.6vw,13px);color:var(--muted);line-height:1.5;}
+
+  /* STEP 3 durée */
+  .field-block{margin-bottom:22px;}
+  .field-label{font-size:clamp(12px,1.8vw,14px);font-weight:800;color:var(--text);margin-bottom:10px;display:block;}
+  .duree-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  @media(max-width:480px){.duree-grid{grid-template-columns:repeat(2,1fr);}}
+  .sel-btn{padding:12px 8px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);cursor:pointer;text-align:center;font-family:'Montserrat',sans-serif;font-size:clamp(11px,1.6vw,13px);font-weight:700;color:var(--muted);transition:all 0.2s;line-height:1.3;}
+  .sel-btn:hover{border-color:var(--yellow);color:var(--text);background:var(--yellow-light);}
+  .sel-btn.selected{border-color:var(--yellow);background:var(--yellow-light);color:var(--yellow-dark);box-shadow:0 0 0 3px rgba(255,191,35,0.2);}
+  .sel-icon{font-size:14px;display:block;margin-bottom:3px;}
+  .sel-sub{font-size:9px;color:var(--muted2);margin-top:2px;display:block;}
+  .sel-btn.selected .sel-sub{color:var(--yellow-dark);}
+  .sel-remise{font-size:9px;font-weight:800;color:var(--yellow-dark);margin-top:3px;display:block;}
+  .sel-btn:not(.selected) .sel-remise{color:var(--muted2);}
+  .remise-preview{display:inline-block;font-size:11px;font-weight:800;margin-top:10px;padding:4px 14px;border-radius:100px;transition:all 0.3s;}
+  .remise-preview.has{background:var(--yellow-light);color:var(--yellow-dark);border:1px solid var(--yellow-border);}
+  .remise-preview.none{background:var(--bg);color:var(--muted2);border:1px solid var(--border);}
+
+  /* NAV */
+  .nav-row{display:flex;gap:10px;margin-top:22px;}
+  .btn-back{padding:12px 18px;border:1.5px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-family:'Montserrat',sans-serif;font-size:clamp(13px,1.8vw,15px);font-weight:700;cursor:pointer;transition:all 0.2s;}
+  .btn-back:hover{border-color:var(--text);color:var(--text);}
+  .btn-next{flex:1;padding:13px;border:none;border-radius:8px;background:var(--text);color:white;font-family:'Montserrat',sans-serif;font-size:clamp(14px,2vw,16px);font-weight:800;cursor:pointer;transition:all 0.2s;}
+  .btn-next:hover{background:#2d2d4e;transform:translateY(-1px);box-shadow:0 6px 16px rgba(26,26,46,0.2);}
+  .btn-next:disabled{background:var(--border);color:var(--muted2);cursor:not-allowed;transform:none;box-shadow:none;}
+
+  /* STEP 4 */
+  .section-num-label{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .section-num{width:22px;height:22px;border-radius:50%;background:var(--text);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .section-title{font-size:clamp(13px,1.8vw,15px);font-weight:800;color:var(--text);}
+
+  .eco-card{background:var(--text);border-radius:14px;padding:28px 24px;margin-bottom:14px;position:relative;overflow:hidden;}
+  .eco-card::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;background:rgba(255,191,35,0.07);}
+  .eco-label{font-size:clamp(10px,1.4vw,12px);font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:8px;}
+  .eco-amount{font-family:'DM Mono',monospace;font-size:clamp(32px,7vw,50px);font-weight:500;color:var(--yellow);line-height:1;margin-bottom:8px;}
+  .eco-sub{font-size:12px;color:rgba(255,255,255,0.45);line-height:1.6;}
+  .eco-sub strong{color:rgba(255,255,255,0.8);}
+
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:480px){.compare-grid{grid-template-columns:1fr;}}
+  .cc{border-radius:12px;padding:16px 14px;border:1.5px solid var(--border);}
+  .cc.cc-alt{background:var(--red-light);border-color:#ffc4ce;}
+  .cc.cc-flow{background:var(--yellow-light);border-color:var(--yellow-border);}
+  .cc-tag{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;padding:2px 8px;border-radius:100px;display:inline-block;margin-bottom:8px;}
+  .cc-alt .cc-tag{background:#ffd6dc;color:var(--red);}
+  .cc-flow .cc-tag{background:var(--yellow-border);color:var(--yellow-dark);}
+  .cc-emoji{font-size:16px;margin-bottom:4px;}
+  .cc-name{font-size:clamp(12px,1.6vw,14px);font-weight:800;color:var(--text);margin-bottom:4px;}
+  .cc-amount{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;line-height:1;}
+  .cc-alt .cc-amount{color:var(--red);}
+  .cc-flow .cc-amount{color:var(--yellow-dark);}
+  .cc-period{font-size:10px;color:var(--muted);margin-bottom:6px;}
+  .cc-economy{font-size:11px;font-weight:800;border-radius:6px;padding:4px 8px;display:inline-block;margin-bottom:10px;}
+  .cc-alt .cc-economy{background:#ffd6dc;color:var(--red);}
+  .cc-flow .cc-economy{background:var(--yellow-border);color:var(--yellow-dark);}
+  .cc-details{border-top:1px solid rgba(0,0,0,0.07);padding-top:8px;}
+  .cc-row{display:flex;justify-content:space-between;font-size:10px;padding:3px 0;color:var(--muted);}
+  .cc-val{font-weight:700;font-size:10px;}
+  .cc-alt .cc-val{color:var(--red);}
+  .cc-flow .cc-val{color:var(--yellow-dark);}
+
+  .detail-card{background:var(--blue-light);border:1.5px solid var(--blue-border);border-radius:12px;padding:20px;}
+  .detail-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .detail-table th{text-align:left;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);padding:0 6px 10px 0;border-bottom:1px solid var(--blue-border);}
+  .detail-table th:last-child{text-align:right;}
+  .detail-table td{padding:8px 6px 8px 0;border-bottom:1px solid rgba(191,219,254,0.5);vertical-align:middle;}
+  .detail-table tr:last-child td{border-bottom:none;}
+  .detail-table td:last-child{text-align:right;}
+  .dt-bu{font-weight:800;color:var(--text);}
+  .dt-info{font-size:10px;color:var(--muted);display:block;}
+  .dt-tjm-base{font-family:'DM Mono',monospace;color:var(--muted);text-decoration:line-through;font-size:11px;display:block;}
+  .dt-tjm-final{font-family:'DM Mono',monospace;color:var(--blue);font-weight:700;font-size:13px;}
+  .remise-breakdown{margin-top:14px;padding-top:14px;border-top:1px solid var(--blue-border);}
+  .rb-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:5px 0;}
+  .rb-key{color:var(--muted);}
+  .rb-pill{display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:800;}
+  .rb-pill.qty{background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid var(--blue-border);}
+  .rb-pill.duree{background:var(--yellow-light);color:var(--yellow-dark);border:1px solid var(--yellow-border);}
+  .rb-pill.total{background:var(--yellow-dark);color:white;}
+  .summary-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-top:1px solid var(--blue-border);margin-top:6px;}
+  .summary-key{font-weight:800;color:var(--text);}
+  .summary-val{font-family:'DM Mono',monospace;font-weight:700;}
+  .summary-val.yellow{color:var(--yellow-dark);font-size:16px;}
+  .summary-val.blue{color:var(--blue);font-size:14px;}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+  @media(max-width:480px){.form-grid{grid-template-columns:1fr;}}
+  .form-field{display:flex;flex-direction:column;gap:5px;}
+  .form-label{font-size:clamp(12px,1.8vw,14px);font-weight:700;color:var(--text);}
+  .form-input{padding:11px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:'Montserrat',sans-serif;font-size:clamp(13px,1.8vw,15px);color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;}
+  .form-input:focus{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(255,191,35,0.15);}
+  .form-input::placeholder{color:var(--muted2);}
+  .urgency-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  @media(max-width:480px){.urgency-grid{grid-template-columns:1fr;}}
+  .urg-btn{padding:10px 8px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);cursor:pointer;text-align:center;font-family:'Montserrat',sans-serif;font-size:clamp(11px,1.6vw,13px);font-weight:700;color:var(--muted);transition:all 0.2s;}
+  .urg-btn:hover{border-color:var(--yellow);color:var(--text);}
+  .urg-btn.selected{border-color:var(--yellow);background:var(--yellow-light);color:var(--yellow-dark);}
+  .urg-icon{font-size:16px;display:block;margin-bottom:3px;}
+  .submit-btn{width:100%;padding:15px;border:none;border-radius:10px;background:var(--yellow);color:var(--text);font-family:'Montserrat',sans-serif;font-size:clamp(14px,2vw,16px);font-weight:800;cursor:pointer;transition:all 0.2s;}
+  .submit-btn:hover{background:#ffc800;transform:translateY(-1px);box-shadow:0 8px 20px rgba(255,191,35,0.4);}
+  .privacy-note{text-align:center;font-size:11px;color:var(--muted2);margin-top:8px;}
+
+  .merci-wrap{text-align:center;padding:40px 24px;}
+  .merci-icon{font-size:44px;margin-bottom:14px;}
+  .merci-title{font-size:clamp(20px,3vw,26px);font-weight:800;letter-spacing:-0.02em;margin-bottom:8px;}
+  .merci-sub{font-size:clamp(13px,1.8vw,15px);color:var(--muted);line-height:1.65;margin-bottom:24px;}
+  .merci-recap{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:20px;text-align:left;}
+  .recap-row{display:flex;justify-content:space-between;font-size:clamp(12px,1.6vw,14px);padding:5px 0;border-bottom:1px solid var(--border);}
+  .recap-row:last-child{border-bottom:none;}
+  .recap-key{color:var(--muted);}
+  .recap-val{font-weight:700;}
+  .recap-val.yellow{color:var(--yellow-dark);}
+  .calendly-btn{display:inline-block;background:var(--text);color:white;padding:13px 26px;border-radius:8px;font-size:13px;font-weight:800;text-decoration:none;transition:all 0.2s;}
+  .calendly-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(26,26,46,0.2);}
+  .footer{text-align:center;font-size:clamp(11px,1.4vw,13px);color:var(--muted2);margin-top:20px;line-height:1.7;}
+  .footer a{color:var(--muted);text-decoration:none;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  .hidden{display:none!important;}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo-row"><div class="logo-dot"></div><span class="logo-name">Flow Digital Studio</span></div>
+    <div class="header-badge">Outil gratuit · Résultat instantané</div>
+    <h1>Combien économisez-vous<br>avec <em>Flow Digital</em> ?</h1>
+    <p class="header-sub">3 questions. Un chiffre concret. Aucun engagement.</p>
+  </div>
+
+  <div class="progress-row" id="progress-row">
+    <div class="step-pill active" id="sp-1" onclick="navToStep(1)"><div class="step-circle">1</div><div class="step-label">Profils</div></div>
+    <div class="step-pill" id="sp-2" onclick="navToStep(2)"><div class="step-circle">2</div><div class="step-label">Objectif</div></div>
+    <div class="step-pill" id="sp-3" onclick="navToStep(3)"><div class="step-circle">3</div><div class="step-label">Durée</div></div>
+    <div class="step-pill" id="sp-4" onclick="navToStep(4)"><div class="step-circle">4</div><div class="step-label">Résultat</div></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="card" id="step-1">
+    <div class="card-title">Quels profils recherchez-vous ?</div>
+    <div class="card-sub">Cochez une BU puis choisissez le niveau et la quantité. Sélection multiple possible.</div>
+    <div class="bu-grid" id="bu-grid"></div>
+    <div class="selected-summary" id="selected-summary"></div>
+    <div class="nav-row">
+      <button class="btn-next" id="btn-next-1" onclick="goStep(2)" disabled>Continuer →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card hidden" id="step-2">
+    <div class="card-title">Vous cherchez à…</div>
+    <div class="card-sub">Votre objectif détermine le bon modèle de comparaison.</div>
+    <div class="obj-grid">
+      <button class="obj-btn" onclick="selectObj('cdi')" id="obj-cdi">
+        <div class="obj-icon">🏢</div><div class="obj-label">Remplacer un CDI</div>
+        <div class="obj-desc">Vous envisagez de recruter en interne mais le délai et le coût vous freinent.</div>
+      </button>
+      <button class="obj-btn" onclick="selectObj('mission')" id="obj-mission">
+        <div class="obj-icon">🚀</div><div class="obj-label">Renforcer l'équipe</div>
+        <div class="obj-desc">Vous avez un projet ou une roadmap et passez par des freelances ou une ESN.</div>
+      </button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goStep(1)">← Retour</button>
+      <button class="btn-next" id="btn-next-2" onclick="goStep(3)" disabled>Continuer →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="card hidden" id="step-3">
+    <div class="card-title">Durée estimée de la mission</div>
+    <div class="card-sub">La durée détermine votre remise fidélité, combinée à votre volume de profils.</div>
+    <div class="field-block">
+      <div class="duree-grid">
+        <button class="sel-btn" onclick="selectDuree('court')" id="duree-court"><span class="sel-icon">⚡</span>Court terme<span class="sel-sub">&lt; 6 mois</span><span class="sel-remise">0% remise</span></button>
+        <button class="sel-btn" onclick="selectDuree('moyen')" id="duree-moyen"><span class="sel-icon">📅</span>6–12 mois<span class="sel-remise">+5 à 8%</span></button>
+        <button class="sel-btn" onclick="selectDuree('long')" id="duree-long"><span class="sel-icon">🗓️</span>12–24 mois<span class="sel-remise">+10 à 18%</span></button>
+        <button class="sel-btn" onclick="selectDuree('treslong')" id="duree-treslong"><span class="sel-icon">🚀</span>+24 mois<span class="sel-remise">+15 à 25%</span></button>
+      </div>
+      <div><span class="remise-preview none" id="remise-preview">Sélectionnez une durée</span></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goStep(2)">← Retour</button>
+      <button class="btn-next" id="btn-next-3" onclick="goStep(4)" disabled>Voir mon économie →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="hidden" id="step-4">
+
+    <div style="margin-bottom:14px;">
+      <div class="section-num-label"><div class="section-num">1</div><div class="section-title">Votre économie</div></div>
+      <div class="eco-card">
+        <div class="eco-label">Économie annuelle estimée</div>
+        <div class="eco-amount" id="r-saving">—</div>
+        <div class="eco-sub">vs <strong id="r-vs">—</strong> · <strong id="r-ctx">—</strong></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <div class="section-num-label"><div class="section-num">2</div><div class="section-title">Comparaison — <span id="s2-sub">—</span></div></div>
+      <div class="compare-grid">
+        <div class="cc cc-alt">
+          <div class="cc-tag">Votre alternative</div>
+          <div class="cc-emoji" id="r-alt-emoji">🏢</div>
+          <div class="cc-name" id="r-alt-name">—</div>
+          <div class="cc-amount" id="r-alt-amt">—</div>
+          <div class="cc-period" id="r-alt-period">/an</div>
+          <div class="cc-economy" id="r-alt-eco"></div>
+          <div class="cc-details">
+            <div class="cc-row"><span>Délai</span><span class="cc-val" id="r-alt-delai">—</span></div>
+            <div class="cc-row"><span>Risque</span><span class="cc-val" id="r-alt-risque">—</span></div>
+            <div class="cc-row"><span>Gestion RH</span><span class="cc-val">À votre charge</span></div>
+          </div>
+        </div>
+        <div class="cc cc-flow">
+          <div class="cc-tag">✦ Flow Digital</div>
+          <div class="cc-emoji">🌍</div>
+          <div class="cc-name">Flow Digital Studio</div>
+          <div class="cc-amount" id="r-flow-amt">—</div>
+          <div class="cc-period" id="r-flow-period">/an</div>
+          <div class="cc-economy" id="r-flow-eco"></div>
+          <div class="cc-details">
+            <div class="cc-row"><span>Délai</span><span class="cc-val">≤ 21 jours</span></div>
+            <div class="cc-row"><span>TJM moyen</span><span class="cc-val" id="r-tjm">—</span></div>
+            <div class="cc-row"><span>Gestion RH</span><span class="cc-val">Incluse</span></div>
+            <div class="cc-row"><span>Remplacement</span><span class="cc-val">Garanti</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <div class="section-num-label"><div class="section-num" style="background:var(--blue)">3</div><div class="section-title">Détail de votre proposition</div></div>
+      <div class="detail-card">
+        <table class="detail-table">
+          <thead><tr><th>BU · Niveau · Qté</th><th>TJM base</th><th>TJM final</th></tr></thead>
+          <tbody id="detail-tbody"></tbody>
+        </table>
+        <div class="remise-breakdown">
+          <div class="rb-row"><span class="rb-key">Remise volume</span><span id="d-r-qty"></span></div>
+          <div class="rb-row"><span class="rb-key">Remise durée</span><span id="d-r-duree"></span></div>
+          <div class="summary-row"><span class="summary-key">Remise totale</span><span id="d-r-total"></span></div>
+          <div class="summary-row"><span class="summary-key">TJM moyen pondéré</span><span class="summary-val blue" id="d-tjm-moy">—</span></div>
+          <div class="summary-row"><span class="summary-key">Coût total annuel</span><span class="summary-val yellow" id="d-cout">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Obtenez une analyse sur mesure</div>
+      <div class="card-sub">Nos équipes vous contactent sous 24h avec une proposition adaptée.</div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">Prénom</label><input type="text" class="form-input" id="f-prenom" placeholder="Thomas"></div>
+        <div class="form-field"><label class="form-label">Nom</label><input type="text" class="form-input" id="f-nom" placeholder="Dupont"></div>
+        <div class="form-field"><label class="form-label">Email professionnel</label><input type="email" class="form-input" id="f-email" placeholder="thomas@mafintech.com"></div>
+        <div class="form-field"><label class="form-label">Entreprise</label><input type="text" class="form-input" id="f-entreprise" placeholder="Ma Fintech SAS"></div>
+        <div class="form-field" style="grid-column:1/-1;"><label class="form-label">Téléphone <span style="font-weight:500;color:var(--muted);font-size:11px;">(optionnel — pour un rappel prioritaire)</span></label><input type="tel" class="form-input" id="f-tel" placeholder="+33 6 12 34 56 78"></div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div class="form-label" style="margin-bottom:8px;">Quand avez-vous besoin de ce profil ?</div>
+        <div class="urgency-grid">
+          <button class="urg-btn" onclick="selectUrg('now')" id="urg-now"><span class="urg-icon">🔥</span>Maintenant</button>
+          <button class="urg-btn" onclick="selectUrg('soon')" id="urg-soon"><span class="urg-icon">📅</span>Dans 1–3 mois</button>
+          <button class="urg-btn" onclick="selectUrg('later')" id="urg-later"><span class="urg-icon">🗓️</span>Plus de 3 mois</button>
+        </div>
+      </div>
+      <button class="submit-btn" onclick="submitForm()">Recevoir mon analyse gratuite →</button>
+      <div class="privacy-note">🔒 Données confidentielles. Réponse sous 24h garantie.</div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="step-merci">
+    <div class="merci-wrap">
+      <div class="merci-icon">✅</div>
+      <div class="merci-title">On vous rappelle sous 24h</div>
+      <div class="merci-sub">Votre demande a bien été reçue. Un expert Flow Digital va analyser votre besoin et vous contacter très prochainement.</div>
+      <div class="merci-recap" id="merci-recap"></div>
+      <a href="https://calendly.com/call-flow-digital/rendez-vous" target="_blank" class="calendly-btn">Réserver directement un créneau →</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    218 jours facturables/an · Grille tarifaire officielle Flow Digital · Remises jusqu'à 25%<br>
+    <a href="https://www.flowdigitalstudio.com" target="_blank">flowdigitalstudio.com</a> · Nearshore IT Maroc · Francophone
+  </div>
+
+</div>
+<script>
+const MAKE_WEBHOOK_URL='https://hook.eu1.make.com/mkwuk213h7569gd30pzu1tr4pxv48dy6';
+const JOURS_AN=218;
+let maxVisitedStep=1;
+
+const BUS_CONFIG=[
+  {key:'ia',    emoji:'🤖',name:'Profils IA / LLM',    metiers:'AI Engineer · MLOps · Prompt Eng. · Tech Lead IA · Archi IA',   tags:['LangChain','RAG','LlamaIndex','Fine-tuning','Agentic','OpenAI','Mistral','HuggingFace','Python']},
+  {key:'web',   emoji:'💻',name:'Profils Web',           metiers:'Dev Front · Dev Back · Fullstack · QA · PO · Tech Lead · Archi', tags:['React','Angular','Vue','NestJS','FastAPI','Spring','Symfony','Rails','TypeScript']},
+  {key:'data',  emoji:'📊',name:'Profils Data',          metiers:'Data Engineer · Data Analyst · BI · Data Scientist · Archi Data',tags:['Spark','dbt','Airflow','Snowflake','BigQuery','Power BI','Tableau','Python','SQL']},
+  {key:'cyber', emoji:'🔐',name:'Profils Cyber',         metiers:'Pentester · SOC Analyst · RSSI · SecOps · Archi Sécu',          tags:['Pentest','SIEM','ISO 27001','Zero Trust','OSCP','Splunk','CrowdStrike','Cloud Sec']},
+  {key:'nocode',emoji:'⚡',name:'No-code / Low-code',    metiers:'Consultant · Développeur · Admin · Tech Lead · Archi',          tags:['Salesforce','ServiceNow','Power Platform','n8n','Make','Zapier','Bubble','Webflow']},
+  {key:'cloud', emoji:'☁️',name:'Cloud & Infra',         metiers:'DevOps · SRE · Cloud Eng. · Infra · Archi Cloud',               tags:['AWS','Azure','GCP','Kubernetes','Terraform','Docker','GitLab CI','Ansible']},
+];
+const SENIOS=[
+  {key:'debutant',label:'Débutant',sub:'0–6 mois'},
+  {key:'junior',  label:'Junior',  sub:'1–3 ans'},
+  {key:'confirme',label:'Confirmé',sub:'2–4 ans'},
+  {key:'senior',  label:'Senior',  sub:'5–8 ans'},
+  {key:'techlead',label:'Tech Lead',sub:'Expert'},
+  {key:'archi',   label:'Archi',   sub:'Senior+'},
+];
+const GRILLE={
+  ia:    {debutant:250,junior:350,confirme:450,senior:500,techlead:550,archi:600},
+  web:   {debutant:180,junior:250,confirme:350,senior:390,techlead:430,archi:500},
+  data:  {debutant:200,junior:300,confirme:400,senior:450,techlead:490,archi:550},
+  cyber: {debutant:200,junior:300,confirme:400,senior:450,techlead:490,archi:550},
+  nocode:{debutant:180,junior:250,confirme:350,senior:390,techlead:430,archi:500},
+  cloud: {debutant:200,junior:300,confirme:400,senior:450,techlead:490,archi:550},
+};
+const TJM_MARCHE ={ia:800,web:600,data:660,cyber:700,nocode:540,cloud:680};
+const SAL_CDI    ={ia:70000,web:55000,data:62000,cyber:64000,nocode:51000,cloud:60000};
+const BU_LABELS  ={ia:'IA / LLM',web:'Web',data:'Data',cyber:'Cyber',nocode:'No-code',cloud:'Cloud & Infra'};
+const SENIO_LABELS={debutant:'Débutant',junior:'Junior',confirme:'Confirmé',senior:'Senior',techlead:'Tech Lead',archi:'Architecte'};
+const DUREE_LABELS={court:'< 6 mois',moyen:'6–12 mois',long:'12–24 mois',treslong:'+24 mois'};
+const REMISES=[[0,5,10,15],[5,8,13,18],[10,13,18,22],[15,18,22,25]];
+const RQ_PART={1:0,2:2,3:5,4:7,5:10,6:12};
+const RD_PART={court:0,moyen:3,long:8,treslong:12};
+
+const buState={};
+let appState={objectif:null,duree:null,urgency:null};
+
+function fmt(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);}
+function getQB(q){return q<=1?0:q<=3?1:q<=5?2:3;}
+function getDB(d){return{court:0,moyen:1,long:2,treslong:3}[d]??0;}
+function getTotalQty(){return BUS_CONFIG.filter(b=>buState[b.key].selected).reduce((a,b)=>a+buState[b.key].qty,0);}
+function getRemise(tq,d){return REMISES[getQB(tq)][getDB(d)];}
+
+function buildBUGrid(){
+  const grid=document.getElementById('bu-grid');
+  BUS_CONFIG.forEach(bu=>{
+    buState[bu.key]={selected:false,senio:'senior',qty:1};
+    const card=document.createElement('div');
+    card.className='bu-card';card.id='bu-'+bu.key;
+    card.innerHTML=`
+      <div class="bu-top" onclick="toggleBU('${bu.key}')">
+        <span class="bu-emoji">${bu.emoji}</span>
+        <div class="bu-title-block">
+          <div class="bu-name">${bu.name}</div>
+          <div class="bu-metiers">${bu.metiers}</div>
+        </div>
+        <div class="bu-check"><span class="bu-check-inner">✓</span></div>
+      </div>
+      <div class="bu-tags-row">${bu.tags.map(t=>`<span class="bu-tag">${t}</span>`).join('')}</div>
+      <div class="bu-config" id="cfg-${bu.key}">
+        <div class="bu-config-label">Niveau d'expérience</div>
+        <div class="bu-senio-grid">
+          ${SENIOS.map(s=>`<button class="bu-senio-btn${s.key==='senior'?' selected':''}" id="sn-${bu.key}-${s.key}" onclick="selSenio('${bu.key}','${s.key}')">${s.label}<span class="bu-senio-sub">${s.sub}</span><span class="bu-senio-price">${GRILLE[bu.key][s.key]}€/j</span></button>`).join('')}
+        </div>
+        <div class="bu-qty-row">
+          <span class="bu-qty-label">Quantité</span>
+          <div class="bu-qty-controls">
+            <button class="qty-btn" onclick="chgQty('${bu.key}',-1)">−</button>
+            <span class="qty-val" id="qv-${bu.key}">1</span>
+            <button class="qty-btn" onclick="chgQty('${bu.key}',+1)">+</button>
+          </div>
+        </div>
+        <div class="bu-config-summary" id="cs-${bu.key}"></div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function toggleBU(key){
+  const bs=buState[key];bs.selected=!bs.selected;
+  document.getElementById('bu-'+key).classList.toggle('selected',bs.selected);
+  updBUSummary(key);updGlobal();checkS1();
+}
+function selSenio(bk,sk){
+  buState[bk].senio=sk;
+  document.querySelectorAll(`[id^="sn-${bk}-"]`).forEach(b=>b.classList.remove('selected'));
+  document.getElementById(`sn-${bk}-${sk}`).classList.add('selected');
+  updBUSummary(bk);updGlobal();
+}
+function chgQty(bk,d){
+  const bs=buState[bk];bs.qty=Math.max(1,Math.min(10,bs.qty+d));
+  document.getElementById(`qv-${bk}`).textContent=bs.qty;
+  updBUSummary(bk);updGlobal();
+}
+function updBUSummary(bk){
+  const bs=buState[bk];const el=document.getElementById(`cs-${bk}`);
+  if(bs.selected&&bs.senio){
+    el.textContent=`${SENIO_LABELS[bs.senio]} · ${bs.qty} profil${bs.qty>1?'s':''} · ${GRILLE[bk][bs.senio]}€/j`;
+    el.classList.add('visible');
+  } else el.classList.remove('visible');
+}
+function updGlobal(){
+  const sel=BUS_CONFIG.filter(b=>buState[b.key].selected);
+  const el=document.getElementById('selected-summary');
+  if(!sel.length){el.textContent='';return;}
+  const tq=sel.reduce((a,b)=>a+buState[b.key].qty,0);
+  el.textContent=`✓ ${sel.length} BU · ${tq} profil${tq>1?'s':''} au total`;
+}
+function checkS1(){
+  const ok=BUS_CONFIG.some(b=>buState[b.key].selected)&&BUS_CONFIG.filter(b=>buState[b.key].selected).every(b=>buState[b.key].senio);
+  document.getElementById('btn-next-1').disabled=!ok;
+}
+
+function selectObj(key){
+  appState.objectif=key;
+  document.querySelectorAll('.obj-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('obj-'+key).classList.add('selected');
+  document.getElementById('btn-next-2').disabled=false;
+}
+function selectDuree(key){
+  appState.duree=key;
+  document.querySelectorAll('[id^="duree-"]').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('duree-'+key).classList.add('selected');
+  document.getElementById('btn-next-3').disabled=false;
+  refreshRP();
+}
+function refreshRP(){
+  const el=document.getElementById('remise-preview');
+  if(!appState.duree){el.textContent='Sélectionnez une durée';el.className='remise-preview none';return;}
+  const tq=getTotalQty();const r=getRemise(tq,appState.duree);
+  if(r>0){el.textContent=`→ Remise combinée : −${r}% (${tq} profil${tq>1?'s':''} · ${DUREE_LABELS[appState.duree]})`;el.className='remise-preview has';}
+  else{el.textContent='→ Pas de remise (< 6 mois · 1 profil)';el.className='remise-preview none';}
+}
+
+function navToStep(n){if(n<=maxVisitedStep)goStep(n);}
+function goStep(n){
+  if(n>maxVisitedStep)maxVisitedStep=n;
+  ['1','2','3','4','merci'].forEach(s=>{const el=document.getElementById('step-'+s);if(el)el.classList.add('hidden');});
+  const t=document.getElementById('step-'+n);
+  if(t){t.classList.remove('hidden');t.style.animation='none';setTimeout(()=>{t.style.animation='fadeUp 0.4s ease both';},10);}
+  updProgress(n);
+  if(n===4)compute();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updProgress(step){
+  const s=parseInt(step);
+  [1,2,3,4].forEach(i=>{
+    const p=document.getElementById('sp-'+i);p.classList.remove('active','done');
+    if(i<s&&i<=maxVisitedStep)p.classList.add('done');else if(i===s)p.classList.add('active');
+  });
+}
+
+function compute(){
+  const sel=BUS_CONFIG.filter(b=>buState[b.key].selected);
+  const tq=getTotalQty();const remise=getRemise(tq,appState.duree);
+  let sumF=0;
+  sel.forEach(b=>{const bs=buState[b.key];sumF+=Math.round(GRILLE[b.key][bs.senio]*(1-remise/100))*bs.qty;});
+  const tjmF=Math.round(sumF/tq);
+  const coutFlow=sumF*JOURS_AN;
+
+  let coutAlt,altLabel,altEmoji,altDelai,altRisque,vsLabel;
+  if(appState.objectif==='cdi'){
+    const avgS=Math.round(sel.reduce((a,b)=>a+SAL_CDI[b.key]*buState[b.key].qty,0)/tq);
+    coutAlt=(avgS*1.45+avgS*0.20)*tq;
+    altLabel='Recrutement CDI';altEmoji='🏢';altDelai='8–12 sem.';altRisque='Turnover élevé';vsLabel='recrutement CDI';
+  } else {
+    const avgM=Math.round(sel.reduce((a,b)=>a+TJM_MARCHE[b.key]*buState[b.key].qty,0)/tq);
+    coutAlt=avgM*JOURS_AN*tq;
+    altLabel='Freelance / ESN';altEmoji='🧑‍💻';altDelai='2–4 sem.';altRisque='Départ sans préavis';vsLabel='freelance / ESN française';
+  }
+
+  const saving=coutAlt-coutFlow;
+  const qL=tq<=1?'1 profil':tq+' profils';
+
+  document.getElementById('r-saving').textContent=fmt(saving);
+  document.getElementById('r-vs').textContent=vsLabel;
+  document.getElementById('r-ctx').textContent=qL;
+  document.getElementById('s2-sub').textContent=`${qL} · même base`;
+
+  document.getElementById('r-alt-emoji').textContent=altEmoji;
+  document.getElementById('r-alt-name').textContent=altLabel;
+  document.getElementById('r-alt-amt').textContent=fmt(coutAlt);
+  document.getElementById('r-alt-period').textContent='/an · '+qL;
+  document.getElementById('r-alt-eco').textContent='Coût total : '+fmt(coutAlt);
+  document.getElementById('r-alt-delai').textContent=altDelai;
+  document.getElementById('r-alt-risque').textContent=altRisque;
+
+  document.getElementById('r-flow-amt').textContent=fmt(coutFlow);
+  document.getElementById('r-flow-period').textContent='/an · '+qL;
+  document.getElementById('r-flow-eco').textContent='Économie : '+fmt(saving)+'/an';
+  document.getElementById('r-tjm').textContent=tjmF+' €/j moy.';
+
+  document.getElementById('detail-tbody').innerHTML=sel.map(b=>{
+    const bs=buState[b.key];const base=GRILLE[b.key][bs.senio];const fin=Math.round(base*(1-remise/100));
+    return `<tr>
+      <td><span class="dt-bu">${BU_LABELS[b.key]}</span><span class="dt-info">${SENIO_LABELS[bs.senio]} · ${bs.qty} profil${bs.qty>1?'s':''}</span></td>
+      <td>${remise>0?`<span class="dt-tjm-base">${base} €/j</span>`:`<span style="font-family:'DM Mono',monospace;font-size:12px">${base} €/j</span>`}</td>
+      <td><span class="dt-tjm-final">${fin} €/j</span></td>
+    </tr>`;
+  }).join('');
+
+  const rq=RQ_PART[Math.min(tq,6)]??12;const rd=RD_PART[appState.duree]??0;
+  document.getElementById('d-r-qty').innerHTML=rq>0?`<span class="rb-pill qty">−${rq}% · ${tq} profil${tq>1?'s':''}</span>`:`<span style="color:var(--muted2);font-size:11px">Aucune (1 profil)</span>`;
+  document.getElementById('d-r-duree').innerHTML=rd>0?`<span class="rb-pill duree">−${rd}% · ${DUREE_LABELS[appState.duree]}</span>`:`<span style="color:var(--muted2);font-size:11px">Aucune (&lt; 6 mois)</span>`;
+  document.getElementById('d-r-total').innerHTML=remise>0?`<span class="rb-pill total">−${remise}% au total</span>`:`<span style="color:var(--muted2);font-size:11px">0%</span>`;
+  document.getElementById('d-tjm-moy').textContent=tjmF+' €/j';
+  document.getElementById('d-cout').textContent=fmt(coutFlow)+'/an';
+}
+
+function selectUrg(key){
+  appState.urgency=key;
+  document.querySelectorAll('.urg-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('urg-'+key).classList.add('selected');
+}
+
+async function submitForm(){
+  const p=document.getElementById('f-prenom').value.trim();
+  const n=document.getElementById('f-nom').value.trim();
+  const e=document.getElementById('f-email').value.trim();
+  const c=document.getElementById('f-entreprise').value.trim();
+  const tel=document.getElementById('f-tel').value.trim();
+  if(!p||!n||!e||!c||!appState.urgency){alert('Merci de remplir tous les champs.');return;}
+
+  const sel=BUS_CONFIG.filter(b=>buState[b.key].selected);
+  const tq=getTotalQty();const remise=getRemise(tq,appState.duree);
+  let sumF=0;sel.forEach(b=>{sumF+=Math.round(GRILLE[b.key][buState[b.key].senio]*(1-remise/100))*buState[b.key].qty;});
+  const tjmF=Math.round(sumF/tq);const coutFlow=sumF*JOURS_AN;
+  const avgS=Math.round(sel.reduce((a,b)=>a+SAL_CDI[b.key]*buState[b.key].qty,0)/tq);
+  const avgM=Math.round(sel.reduce((a,b)=>a+TJM_MARCHE[b.key]*buState[b.key].qty,0)/tq);
+  const coutAlt=appState.objectif==='cdi'?(avgS*1.45+avgS*0.20)*tq:avgM*JOURS_AN*tq;
+  const saving=coutAlt-coutFlow;
+  const uL={now:'Maintenant',soon:'Dans 1–3 mois',later:'Plus de 3 mois'};
+  const detail=sel.map(b=>`${BU_LABELS[b.key]} ${SENIO_LABELS[buState[b.key].senio]} x${buState[b.key].qty}`).join(' | ');
+
+  const payload={prenom:p,nom:n,email:e,telephone:tel||'Non renseigné',entreprise:c,detail_bus:detail,
+    objectif:appState.objectif==='cdi'?'Remplacer un CDI':"Renforcer l'équipe",
+    duree:DUREE_LABELS[appState.duree],quantite_totale:tq,urgence:uL[appState.urgency],
+    remise_pct:remise,tjm_final_moyen:tjmF,economie_estimee:Math.round(saving),
+    cout_annuel_flow:Math.round(coutFlow),source:'calculateur-roi-v10',date:new Date().toISOString()};
+
+  const btn=document.querySelector('.submit-btn');btn.disabled=true;btn.textContent='Envoi en cours…';
+  try{await fetch(MAKE_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'});}catch(err){}
+
+  document.getElementById('merci-recap').innerHTML=`
+    <div class="recap-row"><span class="recap-key">Profils</span><span class="recap-val">${detail}</span></div>
+    <div class="recap-row"><span class="recap-key">Objectif</span><span class="recap-val">${payload.objectif}</span></div>
+    <div class="recap-row"><span class="recap-key">Durée</span><span class="recap-val">${payload.duree}</span></div>
+    <div class="recap-row"><span class="recap-key">TJM moyen</span><span class="recap-val">${tjmF} €/j${remise>0?' (−'+remise+'%)':''}</span></div>
+    <div class="recap-row"><span class="recap-key">Économie estimée</span><span class="recap-val yellow">${fmt(saving)}/an</span></div>`;
+
+  document.getElementById('step-4').classList.add('hidden');
+  document.getElementById('step-merci').classList.remove('hidden');
+  document.getElementById('progress-row').classList.add('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+buildBUGrid();
+</script>
+</body>
+</html>
