@@ -3,7 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculateur ROI — Flow Digital Studio</title>
+<meta name="description" content="Comparez le coût réel d'un recrutement CDI, d'une ESN française et d'un profil nearshore Flow Digital. Résultat instantané, sans engagement. Économisez jusqu'à 40%.">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+<link rel="canonical" href="https://comparator.flowdigitalstudio.com">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Calculateur ROI Dev Tech : CDI vs ESN vs Nearshore | Flow Digital Studio">
+<meta property="og:description" content="Comparez CDI, ESN et nearshore en 3 clics. Résultat instantané, sans engagement.">
+<meta property="og:url" content="https://comparator.flowdigitalstudio.com">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Flow Digital Studio">
+<meta property="og:image" content="https://static.wixstatic.com/media/889f8e_f82d2915fc354cca8dd9d9b3e2419013~mv2.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Calculateur ROI Dev Tech : CDI vs ESN vs Nearshore">
+<meta name="twitter:description" content="Comparez CDI, ESN et nearshore en 3 clics. Résultat instantané.">
+<meta name="twitter:image" content="https://static.wixstatic.com/media/889f8e_f82d2915fc354cca8dd9d9b3e2419013~mv2.png">
+
+<!-- Schema.org JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculateur ROI Dev Tech — Flow Digital Studio",
+  "description": "Comparez le coût d'un recrutement CDI, d'une ESN française et d'un profil nearshore en 3 clics. Résultat instantané, sans engagement.",
+  "url": "https://comparator.flowdigitalstudio.com",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "fr-FR",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR"
+  },
+  "provider": {
+    "@type": "Organization",
+    "name": "Flow Digital Studio",
+    "url": "https://www.flowdigitalstudio.com",
+    "logo": "https://static.wixstatic.com/media/889f8e_f82d2915fc354cca8dd9d9b3e2419013~mv2.png",
+    "sameAs": [
+      "https://www.linkedin.com/company/flow-digital-studio/"
+    ]
+  },
+  "about": [
+    {"@type": "Thing", "name": "nearshore informatique"},
+    {"@type": "Thing", "name": "ESN France"},
+    {"@type": "Thing", "name": "recrutement développeur"},
+    {"@type": "Thing", "name": "intelligence artificielle LLM"},
+    {"@type": "Thing", "name": "staffing IT Maroc"}
+  ]
+}
+</script>
+<title>Calculateur ROI Dev Tech : CDI vs ESN vs Nearshore | Flow Digital Studio</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -46,10 +98,10 @@
   /* BU GRID */
   .bu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   @media(max-width:500px){.bu-grid{grid-template-columns:1fr;}}
-  .bu-card{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg);transition:border-color 0.2s,background 0.2s;}
+  .bu-card{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg);transition:border-color 0.2s,background 0.2s;cursor:pointer;}
   .bu-card:not(.selected):hover{border-color:var(--yellow);background:var(--yellow-light);}
   .bu-card.selected{border-color:var(--yellow);background:var(--yellow-light);box-shadow:0 0 0 3px rgba(255,191,35,0.2);}
-  .bu-top{padding:14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+  .bu-top{padding:14px;display:flex;align-items:flex-start;gap:10px;}
   .bu-emoji{font-size:20px;flex-shrink:0;margin-top:1px;}
   .bu-title-block{flex:1;}
   .bu-name{font-size:clamp(13px,2vw,15px);font-weight:800;color:var(--text);margin-bottom:2px;}
@@ -414,7 +466,15 @@ const GRILLE={
   cloud: {debutant:200,junior:300,confirme:400,senior:450,techlead:490,archi:550},
 };
 const TJM_MARCHE ={ia:800,web:600,data:660,cyber:700,nocode:540,cloud:680};
-const SAL_CDI    ={ia:70000,web:55000,data:62000,cyber:64000,nocode:51000,cloud:60000};
+const SAL_CDI={
+  ia:    {debutant:35000,junior:48000,confirme:62000,senior:78000,techlead:95000,archi:115000},
+  web:   {debutant:28000,junior:38000,confirme:48000,senior:62000,techlead:75000,archi:88000},
+  nocode:{debutant:28000,junior:38000,confirme:48000,senior:62000,techlead:75000,archi:88000},
+  data:  {debutant:32000,junior:42000,confirme:58000,senior:72000,techlead:82000,archi:92000},
+  cloud: {debutant:32000,junior:42000,confirme:58000,senior:72000,techlead:82000,archi:92000},
+  cyber: {debutant:32000,junior:42000,confirme:56000,senior:70000,techlead:82000,archi:95000},
+};
+function getSalCDI(buKey,senioKey){return SAL_CDI[buKey]?.[senioKey]??55000;}
 const BU_LABELS  ={ia:'IA / LLM',web:'Web',data:'Data',cyber:'Cyber',nocode:'No-code',cloud:'Cloud & Infra'};
 const SENIO_LABELS={debutant:'Débutant',junior:'Junior',confirme:'Confirmé',senior:'Senior',techlead:'Tech Lead',archi:'Architecte'};
 const DUREE_LABELS={court:'< 6 mois',moyen:'6–12 mois',long:'12–24 mois',treslong:'+24 mois'};
@@ -437,8 +497,9 @@ function buildBUGrid(){
     buState[bu.key]={selected:false,senio:'senior',qty:1};
     const card=document.createElement('div');
     card.className='bu-card';card.id='bu-'+bu.key;
+    card.onclick=(e)=>{if(e.target.closest('.bu-config'))return;toggleBU(bu.key);};
     card.innerHTML=`
-      <div class="bu-top" onclick="toggleBU('${bu.key}')">
+      <div class="bu-top">
         <span class="bu-emoji">${bu.emoji}</span>
         <div class="bu-title-block">
           <div class="bu-name">${bu.name}</div>
@@ -550,7 +611,7 @@ function compute(){
 
   let coutAlt,altLabel,altEmoji,altDelai,altRisque,vsLabel;
   if(appState.objectif==='cdi'){
-    const avgS=Math.round(sel.reduce((a,b)=>a+SAL_CDI[b.key]*buState[b.key].qty,0)/tq);
+    const avgS=Math.round(sel.reduce((a,b)=>a+getSalCDI(b.key,buState[b.key].senio)*buState[b.key].qty,0)/tq);
     coutAlt=(avgS*1.45+avgS*0.20)*tq;
     altLabel='Recrutement CDI';altEmoji='🏢';altDelai='8–12 sem.';altRisque='Turnover élevé';vsLabel='recrutement CDI';
   } else {
@@ -615,7 +676,7 @@ async function submitForm(){
   const tq=getTotalQty();const remise=getRemise(tq,appState.duree);
   let sumF=0;sel.forEach(b=>{sumF+=Math.round(GRILLE[b.key][buState[b.key].senio]*(1-remise/100))*buState[b.key].qty;});
   const tjmF=Math.round(sumF/tq);const coutFlow=sumF*JOURS_AN;
-  const avgS=Math.round(sel.reduce((a,b)=>a+SAL_CDI[b.key]*buState[b.key].qty,0)/tq);
+  const avgS=Math.round(sel.reduce((a,b)=>a+getSalCDI(b.key,buState[b.key].senio)*buState[b.key].qty,0)/tq);
   const avgM=Math.round(sel.reduce((a,b)=>a+TJM_MARCHE[b.key]*buState[b.key].qty,0)/tq);
   const coutAlt=appState.objectif==='cdi'?(avgS*1.45+avgS*0.20)*tq:avgM*JOURS_AN*tq;
   const saving=coutAlt-coutFlow;
@@ -626,7 +687,7 @@ async function submitForm(){
     objectif:appState.objectif==='cdi'?'Remplacer un CDI':"Renforcer l'équipe",
     duree:DUREE_LABELS[appState.duree],quantite_totale:tq,urgence:uL[appState.urgency],
     remise_pct:remise,tjm_final_moyen:tjmF,economie_estimee:Math.round(saving),
-    cout_annuel_flow:Math.round(coutFlow),source:'calculateur-roi-v10',date:new Date().toISOString()};
+    cout_annuel_flow:Math.round(coutFlow),source:'calculateur-roi-v11',date:new Date().toISOString()};
 
   const btn=document.querySelector('.submit-btn');btn.disabled=true;btn.textContent='Envoi en cours…';
   try{await fetch(MAKE_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'});}catch(err){}
