@@ -537,6 +537,7 @@ function buildBUGrid(){
 
 function toggleBU(key){
   const bs=buState[key];bs.selected=!bs.selected;
+  if(bs.selected){gtag('event','bu_selected',{bu_key:key,step:1});}
   document.getElementById('bu-'+key).classList.toggle('selected',bs.selected);
   updBUSummary(key);updGlobal();checkS1();
 }
@@ -572,12 +573,14 @@ function checkS1(){
 
 function selectObj(key){
   appState.objectif=key;
+  gtag('event','objectif_selected',{objectif:key,step:2});
   document.querySelectorAll('.obj-btn').forEach(b=>b.classList.remove('selected'));
   document.getElementById('obj-'+key).classList.add('selected');
   document.getElementById('btn-next-2').disabled=false;
 }
 function selectDuree(key){
   appState.duree=key;
+  gtag('event','duree_selected',{duree:key,step:3});
   document.querySelectorAll('[id^="duree-"]').forEach(b=>b.classList.remove('selected'));
   document.getElementById('duree-'+key).classList.add('selected');
   document.getElementById('btn-next-3').disabled=false;
@@ -599,6 +602,16 @@ function goStep(n){
   if(t){t.classList.remove('hidden');t.style.animation='none';setTimeout(()=>{t.style.animation='fadeUp 0.4s ease both';},10);}
   updProgress(n);
   if(n===4)compute();
+  if(n===4){
+    const tq=getTotalQty();
+    const remise=getRemise(tq,appState.duree);
+    gtag('event','result_viewed',{
+      total_profiles:tq,
+      objectif:appState.objectif,
+      duree:appState.duree,
+      remise_pct:remise
+    });
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function updProgress(step){
@@ -698,6 +711,12 @@ async function submitForm(){
     cout_annuel_flow:Math.round(coutFlow),source:'calculateur-roi-v11',date:new Date().toISOString()};
 
   const btn=document.querySelector('.submit-btn');btn.disabled=true;btn.textContent='Envoi en cours…';
+  gtag('event','form_submitted',{
+    total_profiles:tq,
+    economie_estimee:Math.round(saving),
+    urgency:appState.urgency,
+    objectif:appState.objectif
+  });
   try{await fetch(MAKE_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'});}catch(err){}
 
   document.getElementById('merci-recap').innerHTML=`
